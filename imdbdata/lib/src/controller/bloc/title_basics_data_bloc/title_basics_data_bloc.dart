@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:http/http.dart' as http;
@@ -22,20 +23,37 @@ class TitleBasicsDataBloc
     String url,
   ) async {
     emit(Requesting());
-    http.Response response = await http.get(Uri.parse(url));
-    if (response.statusCode == 200) {
-      emit(
-        RequestFinishedWithSuccess(
-          TitleBasicsMapper.jsonToListModel(jsonDecode(response.body)),
-        ),
-      );
-    } else {
-      emit(
-        RequestFinishedWithNonSuccess(
-          statusCode: response.statusCode,
-          message: jsonDecode(response.body)['Error'],
-        ),
-      );
+    try {
+      http.Response response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        emit(
+          RequestFinishedWithSuccess(
+            TitleBasicsMapper.jsonToListModel(jsonDecode(response.body)),
+          ),
+        );
+      } else {
+        log(
+          'request finished with non success: code: ${response.statusCode}, message: ${jsonDecode(response.body)['Error']}',
+        );
+        emit(
+          RequestFinishedWithNonSuccess(
+            statusCode: response.statusCode,
+            message: jsonDecode(response.body)['Error'],
+          ),
+        );
+      }
+    } catch (e) {
+      if (e.toString() == 'Connection refused') {
+        log(
+          'request finished with non success: code: 502, message: ${e.toString()}',
+        );
+        emit(
+          RequestFinishedWithNonSuccess(
+            statusCode: 502,
+            message: 'Error',
+          ),
+        );
+      }
     }
   }
 

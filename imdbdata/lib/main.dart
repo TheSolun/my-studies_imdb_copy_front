@@ -28,7 +28,9 @@ class MyApp extends StatelessWidget {
           headline4: TextStyle(fontSize: 17, color: Colors.white54),
         ),
         colorScheme: ColorScheme.fromSwatch().copyWith(
-          secondary: Colors.yellow[600],
+          primary: Colors.white,
+          secondary: const Color.fromARGB(255, 253, 216, 53),
+          tertiary: const Color.fromARGB(255, 66, 66, 66),
           outline: Colors.white70,
         ),
         backgroundColor: Colors.black87,

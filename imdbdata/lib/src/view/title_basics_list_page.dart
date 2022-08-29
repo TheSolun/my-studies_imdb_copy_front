@@ -4,6 +4,7 @@ import 'package:imdbdata/src/controller/bloc/title_basics_data_bloc/title_basics
 import 'package:imdbdata/src/controller/bloc/title_basics_data_bloc/title_basics_data_bloc_event.dart';
 import 'package:imdbdata/src/controller/bloc/title_basics_data_bloc/title_basics_data_bloc_state.dart';
 import 'package:imdbdata/src/model/title_basics.dart';
+import 'package:imdbdata/src/view/filter_title_basics_list_by_genre_form_page.dart';
 import 'package:imdbdata/src/view/title_basics_page.dart';
 
 class TitleBasicsListPage extends StatelessWidget {
@@ -11,30 +12,74 @@ class TitleBasicsListPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('IMDB DATA')),
-      body: BlocProvider(
-        create: (BuildContext context) => TitleBasicsDataBloc(),
-        child: BlocConsumer<TitleBasicsDataBloc, TitleBasicsDataBlocState>(
-          listener: (context, state) {
-            if (state is RequestFinishedWithNonSuccess) {
-              String? message = state.message;
-              if (message != null) {
-                _showErrorSnackBar(context, message);
-              }
-              context.read<TitleBasicsDataBloc>().add(RequestAllTitleBasics());
-            }
-          },
-          builder: (context, state) {
-            if (state is NoRequestDone) {
-              context.read<TitleBasicsDataBloc>().add(RequestAllTitleBasics());
-            } else if (state is RequestFinishedWithSuccess) {
-              return _TitleBasicsList(state.titles);
-            }
-            return const _Loading();
-          },
-        ),
-      ),
+    return BlocProvider(
+      create: (_) => TitleBasicsDataBloc(),
+      child: const _Widget(),
+    );
+  }
+}
+
+class _Widget extends StatelessWidget {
+  const _Widget({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocConsumer<TitleBasicsDataBloc, TitleBasicsDataBlocState>(
+      listener: (context, state) {
+        if (state is RequestFinishedWithNonSuccess) {
+          String? message = state.message;
+          if (message != null) {
+            _showErrorSnackBar(context, message);
+          }
+        }
+      },
+      builder: (context, state) {
+        if (state is NoRequestDone) {
+          context.read<TitleBasicsDataBloc>().add(RequestAllTitleBasics());
+        }
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('IMDB DATA'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  context
+                      .read<TitleBasicsDataBloc>()
+                      .add(RequestAllTitleBasics());
+                },
+                child: Text(
+                  'Get all',
+                  style: TextStyle(color: Colors.yellow[600]),
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => BlocProvider.value(
+                        value: BlocProvider.of<TitleBasicsDataBloc>(context),
+                        child: const FilterTitleBasicsListByGenreFormPage(),
+                      ),
+                    ),
+                  );
+                },
+                child: Text(
+                  'Filter by genre',
+                  style: TextStyle(color: Colors.yellow[600]),
+                ),
+              ),
+            ],
+          ),
+          body: Container(
+            color: Theme.of(context).backgroundColor,
+            child: (state is RequestFinishedWithSuccess)
+                ? _TitleBasicsList(state.titles)
+                : (state is RequestFinishedWithNonSuccess)
+                    ? null
+                    : const _Loading(),
+          ),
+        );
+      },
     );
   }
 
